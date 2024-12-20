@@ -189,7 +189,7 @@ const MultiSelectDnD: React.FC<{
 
     const disableButtons = leftItems.length === 0 && rightItems.length === 0;
 
-    return <div className='multi-select-component' onKeyDown={handleKeyDown}>
+    return <div className='multi-select-component' tabIndex={0} onKeyDown={handleKeyDown}>
         <div className='multi-select-container'>
             <div className='multi-select-column'>
                 {props.leftContainerHeading && <h3>{props.leftContainerHeading}</h3>}
