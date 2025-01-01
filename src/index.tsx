@@ -60,6 +60,7 @@ const MultiSelectDnD: React.FC<{
     rightContainerHeading?: string;
     noLeftItemsMessage?: string;
     noRightItemsMessage?: string;
+    moveItemOnArrowClick?: boolean;
     template?: (item: Item, index: number, containerId: 'left' | 'right', isFocused: boolean) => React.ReactElement;
     onChange?: (movedItem: Item, fromContainer: 'left' | 'right', toContainer: 'left' | 'right', leftItems: Item[], rightItems: Item[]) => void;
 }> = (props) => {
@@ -88,6 +89,7 @@ const MultiSelectDnD: React.FC<{
         fromIndex: number,
         toIndex: number
     ) => {
+        if (fromIndex < 0) return;
         if (fromContainer === 'left' && toContainer === 'right') {
             if (leftItems.length > 0) {
                 const movedItem = leftItems[fromIndex];
@@ -96,6 +98,10 @@ const MultiSelectDnD: React.FC<{
 
                 setLeftItems(newLeftItems);
                 setRightItems(newRightItems);
+
+                onFocusItem(
+                    fromContainer,
+                    Math.min(fromIndex, (fromContainer === 'left' ? newLeftItems.length : newRightItems.length) - 1));
 
                 props.onChange?.(movedItem, fromContainer, toContainer, newLeftItems, newRightItems);
             }
@@ -107,6 +113,9 @@ const MultiSelectDnD: React.FC<{
 
                 setRightItems(newRightItems);
                 setLeftItems(newLeftItems);
+                onFocusItem(
+                    fromContainer,
+                    Math.min(fromIndex, (fromContainer === 'left' ? newLeftItems.length : newRightItems.length) - 1));
 
                 props.onChange?.(movedItem, fromContainer, toContainer, newLeftItems, newRightItems);
             }
@@ -172,6 +181,19 @@ const MultiSelectDnD: React.FC<{
         setFocusedIndex(newFocusedIndex);
     };
 
+    const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, key: string) => {
+        if (focusedIndex < 0 || focusedIndex === null) return;
+
+        if (props.moveItemOnArrowClick && focusedContainer === 'left') {
+            if (key === 'ArrowUp') {
+                moveWithinContainer(focusedContainer, focusedIndex, Math.max(0, focusedIndex - 1));
+            } else if (key === 'ArrowDown') {
+                moveWithinContainer(focusedContainer, focusedIndex, Math.min(leftItems.length - 1, focusedIndex + 1));
+            }
+        }
+        handleKeyDown(new KeyboardEvent('keydown', { key }));
+    }
+
     const _defaultTemplate = (item: Item, index: number, containerId: 'left' | 'right', isFocused: boolean) =>
         props.template ? props.template(item, index, containerId, isFocused) : <>{item.name}</>;
 
@@ -214,17 +236,22 @@ const MultiSelectDnD: React.FC<{
             <div className="multi-select-center-buttons">
                 {/* Buttons to move items */}
                 <button disabled={disableButtons}
-                    onClick={() => handleKeyDown(new KeyboardEvent('keydown', { key: 'ArrowUp' }))}>
+                    onClick={(e) => handleButtonClick(e, 'ArrowUp')}>
                     <span className="arrows-imgs" title="Move the item upwards">↑</span>
                 </button>
                 <button disabled={disableButtons}
                     onClick={() => {
-                        moveItem(focusedContainer === 'left' ? 'left' : 'right', focusedContainer === 'left' ? 'right' : 'left', focusedIndex, rightItems.length);
+                        const fromContainer = focusedContainer === 'left' ? 'left' : 'right';
+                        const toContainer = focusedContainer === 'left' ? 'right' : 'left';
+                        const fromIndex = focusedIndex;
+                        const toIndex = focusedContainer === 'left' ? rightItems.length : leftItems.length;
+
+                        moveItem(fromContainer, toContainer, fromIndex, toIndex);
                     }}>
                     <span className="arrows-imgs" title="Toggle the item">⇆</span>
                 </button>
                 <button disabled={disableButtons}
-                    onClick={() => handleKeyDown(new KeyboardEvent('keydown', { key: 'ArrowDown' }))}>
+                    onClick={(e) => handleButtonClick(e, 'ArrowDown')}>
                     <span className="arrows-imgs" title="Move the item downwards">↓</span>
                 </button>
             </div>

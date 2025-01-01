@@ -1,6 +1,6 @@
 {
   "name": "multi-select-dnd",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,10 +21,10 @@
   "dependencies": {
     "react": "^19.0.0",
     "react-dnd": "^16.0.1",
-    "react-dom": "^19.0.0",
-    "typescript": "^5.7.2"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "typescript": "^5.7.2",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2"
   }
