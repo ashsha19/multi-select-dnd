@@ -61,11 +61,14 @@ const MultiSelectDnD: React.FC<{
     noLeftItemsMessage?: string;
     noRightItemsMessage?: string;
     moveItemOnArrowClick?: boolean;
+    autoScrollIntoView?: boolean;
     template?: (item: Item, index: number, containerId: 'left' | 'right', isFocused: boolean) => React.ReactElement;
     onChange?: (movedItem: Item, fromContainer: 'left' | 'right', toContainer: 'left' | 'right', leftItems: Item[], rightItems: Item[]) => void;
 }> = (props) => {
     const [leftItems, setLeftItems] = React.useState<Item[]>(props.leftItems);
     const [rightItems, setRightItems] = React.useState<Item[]>(props.rightItems);
+
+    const parentDivNode = React.useRef<HTMLDivElement | null>(null);
 
     // Focus tracking
     const [focusedIndex, setFocusedIndex] = React.useState<number>(0);
@@ -99,7 +102,7 @@ const MultiSelectDnD: React.FC<{
                 setLeftItems(newLeftItems);
                 setRightItems(newRightItems);
 
-                onFocusItem(
+                focusItem(
                     fromContainer,
                     Math.min(fromIndex, (fromContainer === 'left' ? newLeftItems.length : newRightItems.length) - 1));
 
@@ -113,7 +116,7 @@ const MultiSelectDnD: React.FC<{
 
                 setRightItems(newRightItems);
                 setLeftItems(newLeftItems);
-                onFocusItem(
+                focusItem(
                     fromContainer,
                     Math.min(fromIndex, (fromContainer === 'left' ? newLeftItems.length : newRightItems.length) - 1));
 
@@ -149,9 +152,16 @@ const MultiSelectDnD: React.FC<{
     };
 
     // Focus management
-    const onFocusItem = (containerId: 'left' | 'right', index: number) => {
+    const focusItem = (containerId: 'left' | 'right', index: number) => {
         setFocusedContainer(containerId);
         setFocusedIndex(index);
+
+        if (props.autoScrollIntoView) {
+            setTimeout(() => {
+                parentDivNode.current?.querySelector('.item-card.selected')?.
+                    scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
     };
 
     // Handle key events for movement
@@ -168,17 +178,20 @@ const MultiSelectDnD: React.FC<{
             const items = focusedContainer === 'left' ? leftItems : rightItems;
             newFocusedIndex = Math.min(items.length - 1, focusedIndex + 1);
         }
-        // Arrow keys to move items between containers
+        // Arrow keys to move items between containersn
         else if (event.key === 'ArrowLeft' && focusedContainer === 'right') {
+            if (leftItems.length === 0) return;
+
             newFocusedContainer = 'left';
-            newFocusedIndex = Math.min(leftItems.length, focusedIndex);
+            newFocusedIndex = Math.min(leftItems.length - 1, focusedIndex);
         } else if (event.key === 'ArrowRight' && focusedContainer === 'left') {
+            if (rightItems.length === 0) return;
+
             newFocusedContainer = 'right';
-            newFocusedIndex = Math.min(rightItems.length, focusedIndex);
+            newFocusedIndex = Math.min(rightItems.length - 1, focusedIndex);
         }
 
-        setFocusedContainer(newFocusedContainer);
-        setFocusedIndex(newFocusedIndex);
+        focusItem(newFocusedContainer, newFocusedIndex);
     };
 
     const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, key: string) => {
@@ -211,7 +224,7 @@ const MultiSelectDnD: React.FC<{
 
     const disableButtons = leftItems.length === 0 && rightItems.length === 0;
 
-    return <div className='multi-select-component' tabIndex={0} onKeyDown={handleKeyDown}>
+    return <div ref={(node) => { parentDivNode.current = node; }} className='multi-select-component' tabIndex={0} onKeyDown={handleKeyDown}>
         <div className='multi-select-container'>
             <div className='multi-select-column'>
                 {props.leftContainerHeading && <h3>{props.leftContainerHeading}</h3>}
@@ -226,7 +239,7 @@ const MultiSelectDnD: React.FC<{
                             moveItem={moveItem}
                             moveWithinContainer={moveWithinContainer}
                             isFocused={focusedContainer === 'left' && focusedIndex === index}
-                            onFocus={() => onFocusItem('left', index)}
+                            onFocus={() => focusItem('left', index)}
                             template={_defaultTemplate}
                         />
                     ))}
@@ -269,7 +282,7 @@ const MultiSelectDnD: React.FC<{
                             moveItem={moveItem}
                             moveWithinContainer={moveWithinContainer}
                             isFocused={focusedContainer === 'right' && focusedIndex === index}
-                            onFocus={() => onFocusItem('right', index)}
+                            onFocus={() => focusItem('right', index)}
                             template={_defaultTemplate}
                         />
                     ))}

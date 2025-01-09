@@ -1,6 +1,6 @@
 {
   "name": "multi-select-dnd",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/ashsha19/multi-select-dnd#readme",
   "author": "Ashish Sharma",
   "license": "ISC",
-  "dependencies": {
+  "peerDependencies": {
     "react": "^19.0.0",
     "react-dnd": "^16.0.1",
     "react-dom": "^19.0.0"
