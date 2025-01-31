@@ -71,7 +71,7 @@ const MultiSelectDnD: React.FC<{
     const parentDivNode = React.useRef<HTMLDivElement | null>(null);
 
     // Focus tracking
-    const [focusedIndex, setFocusedIndex] = React.useState<number>(0);
+    const [focusedIndex, setFocusedIndex] = React.useState<number>(rightItems.length === 0 ? -1 : 0);
     const [focusedContainer, setFocusedContainer] = React.useState<'left' | 'right'>('right');
 
     // drop handling when there is no item in the left container
@@ -82,7 +82,7 @@ const MultiSelectDnD: React.FC<{
                 // move the item in the left containers
                 moveItem('right', 'left', draggedItem.index, 0);
             }
-            if (draggedItem.containerId === 'left' && rightItems.length === 0) {
+            else if (draggedItem.containerId === 'left' && rightItems.length === 0) {
                 moveItem('left', 'right', draggedItem.index, 0);
             }
         },
@@ -96,7 +96,7 @@ const MultiSelectDnD: React.FC<{
         toIndex: number
     ) => {
         if (fromIndex < 0) return;
-        
+
         if (fromContainer === 'left' && toContainer === 'right') {
             if (leftItems.length > 0) {
                 const movedItem = leftItems[fromIndex];
@@ -226,7 +226,7 @@ const MultiSelectDnD: React.FC<{
     //     };
     // }, [focusedIndex, focusedContainer]);
 
-    const disableButtons = leftItems.length === 0 && rightItems.length === 0;
+    const disableButtons = focusedIndex < 0 || (leftItems.length === 0 && rightItems.length === 0);
 
     return <div ref={(node) => { parentDivNode.current = node; }} className='multi-select-component' tabIndex={0} onKeyDown={handleKeyDown}>
         <div className='multi-select-container'>
