@@ -5,7 +5,7 @@ import './style.css';
 
 
 export interface Item {
-    id: number;
+    id: number | string;
     name: string;
     [key: string]: any;
 }
@@ -78,9 +78,12 @@ const MultiSelectDnD: React.FC<{
     const [, drop] = useDrop({
         accept: 'ITEM',
         drop: (draggedItem: { containerId: 'left' | 'right'; index: number }) => {
-            if (leftItems.length === 0) {
+            if (draggedItem.containerId === 'right' && leftItems.length === 0) {
                 // move the item in the left containers
                 moveItem('right', 'left', draggedItem.index, 0);
+            }
+            if (draggedItem.containerId === 'left' && rightItems.length === 0) {
+                moveItem('left', 'right', draggedItem.index, 0);
             }
         },
     });
@@ -93,6 +96,7 @@ const MultiSelectDnD: React.FC<{
         toIndex: number
     ) => {
         if (fromIndex < 0) return;
+        
         if (fromContainer === 'left' && toContainer === 'right') {
             if (leftItems.length > 0) {
                 const movedItem = leftItems[fromIndex];
@@ -271,7 +275,7 @@ const MultiSelectDnD: React.FC<{
 
             <div className='multi-select-column'>
                 {props.rightContainerHeading && <h3>{props.rightContainerHeading}</h3>}
-                <div className="item-list multi-select-right-items">
+                <div ref={(node) => { drop(node) }} className="item-list multi-select-right-items">
                     {rightItems.length === 0 && <>{props.noRightItemsMessage}</>}
                     {rightItems.map((item, index) => (
                         <ItemComponent
