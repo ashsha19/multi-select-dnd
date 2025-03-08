@@ -75,14 +75,21 @@ const MultiSelectDnD: React.FC<{
     const [focusedContainer, setFocusedContainer] = React.useState<'left' | 'right'>('right');
 
     // drop handling when there is no item in the left container
-    const [, drop] = useDrop({
+    const [, dropOnLeft] = useDrop({
         accept: 'ITEM',
         drop: (draggedItem: { containerId: 'left' | 'right'; index: number }) => {
             if (draggedItem.containerId === 'right' && leftItems.length === 0) {
                 // move the item in the left containers
                 moveItem('right', 'left', draggedItem.index, 0);
             }
-            else if (draggedItem.containerId === 'left' && rightItems.length === 0) {
+        },
+    });
+
+    // drop handling when there is no item in the right container
+    const [, dropOnRight] = useDrop({
+        accept: 'ITEM',
+        drop: (draggedItem: { containerId: 'left' | 'right'; index: number }) => {
+            if (draggedItem.containerId === 'left' && rightItems.length === 0) {
                 moveItem('left', 'right', draggedItem.index, 0);
             }
         },
@@ -232,7 +239,7 @@ const MultiSelectDnD: React.FC<{
         <div className='multi-select-container'>
             <div className='multi-select-column'>
                 {props.leftContainerHeading && <h3>{props.leftContainerHeading}</h3>}
-                <div ref={(node) => { drop(node) }} className="item-list multi-select-left-items">
+                <div ref={(node) => { dropOnLeft(node) }} className="item-list multi-select-left-items">
                     {leftItems.length === 0 && <>{props.noLeftItemsMessage}</>}
                     {leftItems.map((item, index) => (
                         <ItemComponent
@@ -275,7 +282,7 @@ const MultiSelectDnD: React.FC<{
 
             <div className='multi-select-column'>
                 {props.rightContainerHeading && <h3>{props.rightContainerHeading}</h3>}
-                <div ref={(node) => { drop(node) }} className="item-list multi-select-right-items">
+                <div ref={(node) => { dropOnRight(node) }} className="item-list multi-select-right-items">
                     {rightItems.length === 0 && <>{props.noRightItemsMessage}</>}
                     {rightItems.map((item, index) => (
                         <ItemComponent
